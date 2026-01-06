@@ -37,6 +37,9 @@ def index():
 @app.route("/admin")
 def admin():
     questions = load_questions()
+    # تحويل created_at من str إلى datetime
+    for q in questions:
+        q["created_at_dt"] = datetime.fromisoformat(q["created_at"])
     # ترتيب الأسئلة من الأحدث للأقدم
     questions = sorted(questions, key=lambda x: x["created_at"], reverse=True)
     return render_template("admin.html", questions=questions)
