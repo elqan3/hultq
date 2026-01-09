@@ -21,32 +21,33 @@ class Question(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.Text, nullable=False)
-    created_at = db.Column(db.DateTime, nullable=False)
+    created_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=datetime.utcnow
+    )
 
 # =========================
 # Routes
 # =========================
 
-# صفحة طرح السؤال
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
         text = request.form.get("question", "").strip()
         if text:
-            q = Question(
-                text=text,
-                created_at=datetime.utcnow()
-            )
+            q = Question(text=text)
             db.session.add(q)
             db.session.commit()
         return redirect(url_for("index"))
 
     return render_template("index.html")
 
-# لوحة الأدمن
 @app.route("/admin")
 def admin():
-    questions = Question.query.order_by(Question.created_at.desc()).all()
+    questions = Question.query.order_by(
+        Question.created_at.desc()
+    ).all()
     return render_template("admin.html", questions=questions)
 
 # =========================
@@ -54,6 +55,3 @@ def admin():
 # =========================
 with app.app_context():
     db.create_all()
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
