@@ -8,8 +8,13 @@ app = Flask(__name__)
 # =========================
 # Database Configuration
 # =========================
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL")
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL is not set")
+
+app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
 
@@ -30,7 +35,6 @@ class Question(db.Model):
 # =========================
 # Routes
 # =========================
-
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
@@ -43,6 +47,7 @@ def index():
 
     return render_template("index.html")
 
+
 @app.route("/admin")
 def admin():
     questions = Question.query.order_by(
@@ -50,8 +55,12 @@ def admin():
     ).all()
     return render_template("admin.html", questions=questions)
 
+
 # =========================
-# Create Tables
+# Create Tables (SAFE)
 # =========================
-with app.app_context():
-    db.create_all()
+if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
+
+    app.run(host="0.0.0.0", port=5000)
